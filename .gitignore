@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+build/
+
+# Variables de entorno — NUNCA subir esto
+.env
+.env.local
+.env.production
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

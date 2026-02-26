@@ -1,0 +1,16 @@
+/* Mismos arreglos que aplican a las grids genéricas */
+.budget-row-content {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 3fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+@media (max-width: 640px) {
+    .budget-row-content {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+}

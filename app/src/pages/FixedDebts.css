@@ -1,0 +1,42 @@
+.debts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.debt-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--glass-border);
+}
+
+.debt-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -5px rgba(0, 0, 0, 0.4);
+}
+
+.debt-card.urgent {
+    border-color: rgba(239, 68, 68, 0.5);
+    /* Alerta roja suave */
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);
+}
+
+.debt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.debt-body {
+    flex: 1;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}

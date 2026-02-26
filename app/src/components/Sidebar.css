@@ -1,0 +1,174 @@
+.sidebar {
+    width: 260px;
+    height: calc(100vh - 2rem);
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    z-index: 50;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+}
+
+.logo-icon-small {
+    font-size: 1.5rem;
+}
+
+.sidebar-header h2 {
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+.nav-link.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--glass-border);
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    color: var(--danger);
+    font-weight: 500;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Tarjeta de perfil en el footer del sidebar */
+.profile-mini-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: left;
+}
+
+.profile-mini-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: var(--glass-border);
+}
+
+.profile-mini-avatar {
+    font-size: 1.75rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.profile-mini-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.profile-mini-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-mini-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+
+.mobile-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 60;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 40;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-120%);
+        left: 0;
+        top: 0;
+        height: 100vh;
+        border-radius: 0;
+        border-right: 1px solid var(--glass-border);
+        border-left: none;
+        border-top: none;
+        border-bottom: none;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .mobile-toggle {
+        display: flex;
+    }
+
+    .sidebar-overlay {
+        display: block;
+    }
+}

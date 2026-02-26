@@ -1,0 +1,114 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow-y: auto;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 500px;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    color: var(--text-main);
+}
+
+.close-btn {
+    color: var(--text-muted);
+}
+
+.close-btn:hover {
+    color: var(--text-main);
+}
+
+.transaction-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.type-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem !important;
+}
+
+.type-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.type-btn.expense.active {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.type-btn.income.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent);
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-muted);
+    display: flex;
+    pointer-events: none;
+}
+
+.input-with-icon input,
+.input-with-icon select {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3.2rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-main);
+    transition: var(--transition);
+}
+
+.input-with-icon input:focus,
+.input-with-icon select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}

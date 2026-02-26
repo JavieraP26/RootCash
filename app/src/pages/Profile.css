@@ -1,0 +1,212 @@
+.profile-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- Tarjeta de preview izquierda ---- */
+.profile-card {
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    position: sticky;
+    top: 1rem;
+}
+
+.avatar-display {
+    font-size: 5rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+    transition: transform 0.2s ease;
+}
+
+.avatar-display:hover {
+    transform: scale(1.05);
+}
+
+.profile-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.profile-email {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.profile-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    font-size: 0.8rem;
+    margin: 0.2rem;
+}
+
+.profile-job {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.profile-dates {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ---- Columna derecha: formulario ---- */
+.profile-form-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-section {
+    padding: 1.5rem;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* ---- Avatar grid ---- */
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 0.5rem;
+}
+
+.avatar-btn {
+    font-size: 1.75rem;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.03);
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: scale(1.1);
+}
+
+.avatar-btn.selected {
+    border-color: var(--primary);
+    background: rgba(59, 130, 246, 0.15);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ---- Form grid ---- */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 500px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-main);
+    transition: var(--transition);
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* ---- Gender pills ---- */
+.gender-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.gender-btn {
+    padding: 0.5rem 1.1rem;
+    border-radius: 2rem;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.9rem;
+    transition: all 0.15s ease;
+}
+
+.gender-btn:hover {
+    border-color: var(--primary);
+    color: var(--text-main);
+}
+
+.gender-btn.selected {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* ---- Checkbox ---- */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+    cursor: pointer;
+}

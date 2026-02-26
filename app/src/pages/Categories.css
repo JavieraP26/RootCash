@@ -1,0 +1,88 @@
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.category-card {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    gap: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.cat-color-badge {
+    width: 16px;
+    height: 40px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.cat-info {
+    flex: 1;
+}
+
+.cat-info h3 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+}
+
+.cat-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.category-card:hover .cat-actions {
+    opacity: 1;
+}
+
+.icon-btn {
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn.edit {
+    color: var(--text-muted);
+}
+
+.icon-btn.edit:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.icon-btn.delete {
+    color: var(--danger);
+}
+
+.icon-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.color-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: transform 0.1s ease;
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+}
+
+.color-btn.selected {
+    border-color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}

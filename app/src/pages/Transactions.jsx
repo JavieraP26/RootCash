@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCLP, formatDate } from '../utils/formatters';
 import { ArrowUpRight, ArrowDownRight, Search, FileText, Trash2, Calendar } from 'lucide-react';
+import './Transactions.css';
 
 const MovimientosView = () => {
     const { user } = useAuth();
@@ -93,71 +94,85 @@ const MovimientosView = () => {
                         <p className="text-muted">No encontramos transacciones que coincidan con tu búsqueda.</p>
                     </div>
                 ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid var(--glass-border)', color: 'var(--text-muted)' }}>
-                                    <th style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>Fecha</th>
-                                    <th style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>Descripción</th>
-                                    <th style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>Categoría</th>
-                                    <th style={{ padding: '1rem 1.5rem', fontWeight: 500, textAlign: 'right' }}>Monto</th>
-                                    <th style={{ padding: '1rem 1.5rem', fontWeight: 500, textAlign: 'center' }}>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredTransactions.map(t => {
-                                    const isIncome = t.type === 'income';
-                                    const category = categories[t.category_id];
+                    <>
+                        {/* DESKTOP: tabla */}
+                        <div className="txn-table-wrap">
+                            <table className="txn-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Descripción</th>
+                                        <th>Categoría</th>
+                                        <th style={{ textAlign: 'right' }}>Monto</th>
+                                        <th style={{ textAlign: 'center' }}>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredTransactions.map(t => {
+                                        const isIncome = t.type === 'income';
+                                        const category = categories[t.category_id];
+                                        return (
+                                            <tr key={t.id}>
+                                                <td style={{ color: 'var(--text-muted)' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Calendar size={14} />{formatDate(t.date)}
+                                                    </div>
+                                                </td>
+                                                <td style={{ fontWeight: 500 }}>{t.description}</td>
+                                                <td>
+                                                    {category ? (
+                                                        <span style={{ display: 'inline-block', padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem', background: `${category.color_hex}20`, color: category.color_hex, border: `1px solid ${category.color_hex}40` }}>
+                                                            {category.name}
+                                                        </span>
+                                                    ) : <span className="text-muted">-</span>}
+                                                </td>
+                                                <td style={{ textAlign: 'right', fontWeight: 600, color: isIncome ? 'var(--accent)' : 'var(--danger)' }}>
+                                                    {isIncome ? '+' : '-'}{formatCLP(t.amount)}
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <button onClick={() => handleDelete(t.id)} style={{ padding: '0.5rem', color: 'var(--danger)', borderRadius: 'var(--radius-md)' }} title="Eliminar">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
 
-                                    return (
-                                        <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                        >
-                                            <td style={{ padding: '1rem 1.5rem', color: 'var(--text-muted)' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <Calendar size={14} />
-                                                    {formatDate(t.date)}
-                                                </div>
-                                            </td>
-                                            <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>{t.description}</td>
-                                            <td style={{ padding: '1rem 1.5rem' }}>
-                                                {category ? (
-                                                    <span style={{
-                                                        display: 'inline-block',
-                                                        padding: '0.25rem 0.5rem',
-                                                        borderRadius: '1rem',
-                                                        fontSize: '0.8rem',
-                                                        background: `${category.color_hex}20`,
-                                                        color: category.color_hex,
-                                                        border: `1px solid ${category.color_hex}40`
-                                                    }}>
+                        {/* MÓVIL: tarjetas */}
+                        <div className="txn-cards">
+                            {filteredTransactions.map(t => {
+                                const isIncome = t.type === 'income';
+                                const category = categories[t.category_id];
+                                return (
+                                    <div key={t.id} className="txn-card">
+                                        <div className="txn-card-left">
+                                            <span className="txn-card-desc">{t.description}</span>
+                                            <div className="txn-card-meta">
+                                                <Calendar size={12} />
+                                                <span>{formatDate(t.date)}</span>
+                                                {category && (
+                                                    <span style={{ padding: '0.1rem 0.5rem', borderRadius: '1rem', fontSize: '0.75rem', background: `${category.color_hex}20`, color: category.color_hex, border: `1px solid ${category.color_hex}40` }}>
                                                         {category.name}
                                                     </span>
-                                                ) : <span className="text-muted">-</span>}
-                                            </td>
-                                            <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600, color: isIncome ? 'var(--accent)' : 'var(--danger)' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
-                                                    {isIncome ? '+' : '-'}{formatCLP(t.amount)}
-                                                </div>
-                                            </td>
-                                            <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
-                                                <button
-                                                    onClick={() => handleDelete(t.id)}
-                                                    style={{ padding: '0.5rem', color: 'var(--danger)', borderRadius: 'var(--radius-md)' }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="txn-card-right">
+                                            <span className="txn-card-amount" style={{ color: isIncome ? 'var(--accent)' : 'var(--danger)' }}>
+                                                {isIncome ? '+' : '-'}{formatCLP(t.amount)}
+                                            </span>
+                                            <button onClick={() => handleDelete(t.id)} style={{ padding: '0.4rem', color: 'var(--danger)', borderRadius: 'var(--radius-md)' }} title="Eliminar">
+                                                <Trash2 size={15} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
                 )}
             </div>
         </div>

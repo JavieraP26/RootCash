@@ -1,0 +1,90 @@
+/* Tabla en desktop */
+.txn-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.txn-table th {
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.txn-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.txn-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Grid de tarjetas en móvil */
+.txn-cards {
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+}
+
+.txn-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+}
+
+.txn-card-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.txn-card-desc {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.txn-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.txn-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.txn-card-amount {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Ocultar tabla / mostrar cards en móvil */
+@media (max-width: 640px) {
+    .txn-table-wrap {
+        display: none;
+    }
+
+    .txn-cards {
+        display: flex;
+    }
+}

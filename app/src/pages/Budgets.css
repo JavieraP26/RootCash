@@ -1,16 +1,47 @@
-/* Mismos arreglos que aplican a las grids genéricas */
-.budget-row-content {
+/* Layout responsive para la tabla de presupuestos */
+.budget-table-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 3fr;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.budget-row {
     display: grid;
     grid-template-columns: 2fr 1.5fr 3fr;
     gap: 1rem;
     align-items: center;
 }
 
+/* En móvil: cada categoría se convierte en una tarjeta apilada */
 @media (max-width: 640px) {
-    .budget-row-content {
+    .budget-table-header {
+        display: none;
+        /* Ocultar cabecera de tabla */
+    }
+
+    .budget-row {
         grid-template-columns: 1fr;
-        gap: 0.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        gap: 0.75rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--glass-border);
+    }
+
+    .budget-limit-col {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .budget-limit-col::before {
+        content: 'Límite:';
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        white-space: nowrap;
     }
 }

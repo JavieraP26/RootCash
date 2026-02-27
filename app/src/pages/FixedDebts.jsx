@@ -91,12 +91,12 @@ const FixedDebts = () => {
 
     return (
         <div className="view-content fade-in">
-            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: 600 }}>Gastos Fijos</h1>
                     <p className="subtitle">Lleva el control de lo que pagas cada mes.</p>
                 </div>
-                <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setIsFormOpen(true)}>
+                <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }} onClick={() => setIsFormOpen(true)}>
                     <Plus size={20} />
                     <span>Nuevo Fijo</span>
                 </button>

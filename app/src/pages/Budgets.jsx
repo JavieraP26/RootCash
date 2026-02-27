@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCLP } from '../utils/formatters';
 import { PieChart, Save } from 'lucide-react';
+import './Budgets.css';
 
 const Budgets = () => {
     const { user } = useAuth();
@@ -119,14 +120,14 @@ const Budgets = () => {
 
     return (
         <div className="view-content fade-in">
-            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: 600 }}>Tus Presupuestos</h1>
                     <p className="subtitle">Asigna límites a tus categorías para este mes.</p>
                 </div>
                 <button
                     className="btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}
                     onClick={handleSaveBudgets}
                     disabled={saving}
                 >
@@ -145,7 +146,7 @@ const Budgets = () => {
                 </div>
             ) : (
                 <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 3fr', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)', color: 'var(--text-muted)', fontWeight: 500 }}>
+                    <div className="budget-table-header">
                         <div>Categoría</div>
                         <div>Límite Mensual ($)</div>
                         <div>Progreso (Gastado)</div>
@@ -159,13 +160,13 @@ const Budgets = () => {
                             const pColor = getProgressColor(percentage);
 
                             return (
-                                <div key={cat.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 3fr', gap: '1rem', alignItems: 'center' }}>
+                                <div key={cat.id} className="budget-row">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: cat.color_hex }}></div>
                                         <span style={{ fontWeight: 500 }}>{cat.name}</span>
                                     </div>
 
-                                    <div>
+                                    <div className="budget-limit-col">
                                         <input
                                             type="number"
                                             value={limit}

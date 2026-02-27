@@ -153,6 +153,10 @@
         left: 0;
         top: 0;
         height: 100vh;
+        /* fallback para navegadores viejos */
+        height: 100dvh;
+        /* altura real sin contar barra del navegador */
+        overflow-y: auto;
         border-radius: 0;
         border-right: 1px solid var(--glass-border);
         border-left: none;

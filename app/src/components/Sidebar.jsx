@@ -8,6 +8,7 @@ import {
     Tags,
     CalendarClock,
     PieChart,
+    BarChart2,
     LogOut,
     Menu,
     X
@@ -40,6 +41,7 @@ const Sidebar = () => {
         { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
         { name: 'Movimientos', path: '/movimientos', icon: <Wallet size={20} /> },
         { name: 'Presupuestos', path: '/presupuestos', icon: <PieChart size={20} /> },
+        { name: 'Estadísticas', path: '/estadisticas', icon: <BarChart2 size={20} /> },
         { name: 'Categorías', path: '/categorias', icon: <Tags size={20} /> },
         { name: 'Gastos Fijos', path: '/deudas', icon: <CalendarClock size={20} /> },
     ];
@@ -55,10 +57,10 @@ const Sidebar = () => {
 
             <div className={`sidebar glass-panel ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }} onClick={() => setIsOpen(false)}>
                         <img src="/logo.svg" alt="RootCash" style={{ width: '34px', height: '34px', objectFit: 'contain' }} />
                         <h2 className="brand-title">RootCash</h2>
-                    </div>
+                    </NavLink>
                     {user && <NotificationBell />}
                 </div>
 

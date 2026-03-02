@@ -2,14 +2,103 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCLP, parseAmount, formatDate } from '../utils/formatters';
-import { TrendingUp, TrendingDown, Wallet, Plus, ArrowUpRight, ArrowDownRight, Pencil, Check, X } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Plus, ArrowUpRight, ArrowDownRight, Pencil, Check, X, Download, Lightbulb } from 'lucide-react';
 import TransactionModal from '../components/TransactionModal';
+import SavingsGoal from '../components/SavingsGoal';
 import './Dashboard.css';
+
+const FinancialAdvice = ({ baseIncome, totalIncome, totalExpenses, transactions, profile }) => {
+    if (totalIncome === 0 && totalExpenses === 0) return null;
+
+    let advice = { type: 'neutral', text: 'Registra más movimientos para recibir consejos personalizados.', title: '¡Hola!' };
+    const balance = totalIncome - totalExpenses;
+    const progressToGoal = profile?.savings_goal_amount ? balance / profile.savings_goal_amount : 0;
+
+    // Análisis de categorías
+    const expensesByCategory = {};
+    transactions.filter(t => t.type === 'expense').forEach(t => {
+        const cat = t.category_id || 'other';
+        expensesByCategory[cat] = (expensesByCategory[cat] || 0) + parseFloat(t.amount);
+    });
+
+    let topWarningCategory = null;
+    if (totalExpenses > 0) {
+        for (const [cat, amount] of Object.entries(expensesByCategory)) {
+            if (amount > totalExpenses * 0.45) topWarningCategory = amount; // Más del 45% en una sola cosa
+        }
+    }
+
+    if (balance < 0) {
+        advice = {
+            type: 'danger',
+            title: 'Alerta de sobregiro',
+            text: 'Estás gastando más de lo que ingresa. Toma un respiro y revisa si puedes pausar alguna compra no esencial este mes. ¡Puedes recuperar el control!'
+        };
+    } else if (totalExpenses > totalIncome * 0.85) {
+        advice = {
+            type: 'warning',
+            title: 'Cuidado con el límite',
+            text: 'Estás muy cerca de gastar todo tu saldo. Intenta cuidar los gastos hormiga los próximos días para cerrar el mes tranquilo/a.'
+        };
+    } else if (topWarningCategory) {
+        advice = {
+            type: 'warning',
+            title: 'Gasto concentrado',
+            text: 'Notamos que casi la mitad de tus gastos se van en una sola categoría. Revisa tus presupuestos para asegurar que esté dentro de lo planeado.'
+        };
+    } else if (profile?.savings_goal_amount && progressToGoal >= 1) {
+        advice = {
+            type: 'success',
+            title: '¡Meta lograda!',
+            text: '¡Increíble! Ya superaste tu meta de ahorro para este periodo. Considerando el saldo a favor, es un excelente momento para mover ese dinero a una cuenta de ahorro o inversión.'
+        };
+    } else if (balance > totalIncome * 0.4) {
+        advice = {
+            type: 'success',
+            title: 'Excelente margen',
+            text: 'Llevas un control fantástico este mes. Tienes un buen margen a favor, ideal para destinar una parte a tu fondo de emergencia.'
+        };
+    } else {
+        advice = {
+            type: 'neutral',
+            title: 'Vas por buen camino',
+            text: 'Tus finanzas se ven estables este mes. Sigue registrando todo para mantener la claridad.'
+        };
+    }
+
+    const getColors = (type) => {
+        switch (type) {
+            case 'danger': return { bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.3)', icon: 'var(--danger)' };
+            case 'warning': return { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.3)', icon: '#f59e0b' };
+            case 'success': return { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.3)', icon: 'var(--accent)' };
+            default: return { bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.3)', icon: 'var(--primary)' };
+        }
+    };
+    const colors = getColors(advice.type);
+
+    return (
+        <div style={{
+            marginTop: '1.5rem', padding: '1.25rem 1.5rem', borderRadius: 'var(--radius-md)',
+            background: colors.bg, border: `1px solid ${colors.border}`, display: 'flex', gap: '1rem', alignItems: 'flex-start'
+        }}>
+            <div style={{ padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '50%', color: colors.icon }}>
+                <Lightbulb size={20} />
+            </div>
+            <div>
+                <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--text-main)', fontSize: '0.95rem' }}>{advice.title}</h4>
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.5 }}>
+                    {advice.text}
+                </p>
+            </div>
+        </div>
+    );
+};
 
 const Dashboard = () => {
     const { user } = useAuth();
     const [profile, setProfile] = useState(null);
     const [transactions, setTransactions] = useState([]);
+    const [streak, setStreak] = useState(0); // Racha de meses en positivo
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -38,11 +127,44 @@ const Dashboard = () => {
                 .from('transactions')
                 .select('*')
                 .eq('user_id', user.id)
-                .gte('date', firstDay.split('T')[0])
-                .lte('date', lastDay.split('T')[0])
                 .order('date', { ascending: false });
 
-            if (transData) setTransactions(transData);
+            if (transData) {
+                // Separar transacciones del mes actual para el dashboard
+                const currentMonthTrans = transData.filter(t => t.date >= firstDay.split('T')[0] && t.date <= lastDay.split('T')[0]);
+                setTransactions(currentMonthTrans);
+
+                // Calcular Racha (Streak) de meses en positivo hacia atrás
+                let currentStreak = 0;
+                let checkDate = new Date(date.getFullYear(), date.getMonth() - 1, 1); // Empezar evaluando el mes anterior
+
+                // Mapear transacciones por mes para evaluación rápida
+                const monthlyStats = {};
+                transData.forEach(t => {
+                    const d = new Date(t.date + 'T00:00:00');
+                    const key = `${d.getFullYear()}-${d.getMonth()}`;
+                    if (!monthlyStats[key]) monthlyStats[key] = { in: 0, out: 0, hasData: false };
+                    monthlyStats[key].hasData = true;
+                    if (t.type === 'income') monthlyStats[key].in += parseFloat(t.amount);
+                    else monthlyStats[key].out += parseFloat(t.amount);
+                });
+
+                // Contar hacia atrás mientras el mes tenga datos y saldo positivo (Ingresos + Sueldo > Gastos)
+                const baseInc = profileData?.monthly_income || 0;
+                while (true) {
+                    const key = `${checkDate.getFullYear()}-${checkDate.getMonth()}`;
+                    if (!monthlyStats[key] || !monthlyStats[key].hasData) break; // Si no hay datos ese mes, se corta la racha
+
+                    const totalIn = baseInc + monthlyStats[key].in;
+                    if (totalIn >= monthlyStats[key].out) {
+                        currentStreak++;
+                        checkDate.setMonth(checkDate.getMonth() - 1);
+                    } else {
+                        break; // Mes negativo, se corta la racha
+                    }
+                }
+                setStreak(currentStreak);
+            }
         } catch (error) {
             console.error("Error fetching dashboard data:", error);
         } finally {
@@ -96,7 +218,14 @@ const Dashboard = () => {
         <div className="dashboard-container fade-in">
             <header className="dashboard-header">
                 <div>
-                    <h1 className="greeting">Hola, {profile?.display_name || user?.email?.split('@')[0]} 👋</h1>
+                    <h1 className="greeting" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        Hola, {profile?.display_name || user?.email?.split('@')[0]} 👋
+                        {streak > 0 && (
+                            <span style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'rgba(249, 115, 22, 0.1)', color: '#f97316', padding: '0.2rem 0.6rem', borderRadius: '1rem', border: '1px solid rgba(249, 115, 22, 0.2)' }}>
+                                <span style={{ fontSize: '1.2rem' }}>🔥</span> {streak} {streak === 1 ? 'mes invicto' : 'meses invictos'}
+                            </span>
+                        )}
+                    </h1>
                     <p className="subtitle">Aquí está tu resumen de este mes.</p>
                 </div>
                 <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setIsModalOpen(true)}>
@@ -177,6 +306,23 @@ const Dashboard = () => {
                         </h3>
                     </div>
                 </div>
+            </div>
+
+            <div style={{ marginTop: '1.5rem' }}>
+                <SavingsGoal
+                    monthlyIncome={totalIncome}
+                    monthlyExpenses={totalExpenses}
+                    profile={profile}
+                    onProfileUpdate={(updates) => setProfile(prev => ({ ...prev, ...updates }))}
+                />
+
+                <FinancialAdvice
+                    baseIncome={baseIncome}
+                    totalIncome={totalIncome}
+                    totalExpenses={totalExpenses}
+                    transactions={transactions}
+                    profile={profile}
+                />
             </div>
 
             <div className="recent-activity-section">

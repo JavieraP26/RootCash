@@ -5,8 +5,9 @@ import { Plus, Tag, Trash2, Edit2 } from 'lucide-react';
 import './Categories.css';
 
 const PRESET_COLORS = [
-    '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981',
-    '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b'
+    '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#14b8a6',
+    '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
+    '#d946ef', '#ec4899', '#f43f5e', '#64748b'
 ];
 
 const Categories = () => {
@@ -16,7 +17,7 @@ const Categories = () => {
 
     // States para el formulario
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [formData, setFormData] = useState({ id: null, name: '', color_hex: PRESET_COLORS[0] });
+    const [formData, setFormData] = useState({ id: null, name: '', color_hex: PRESET_COLORS[0], icon: '' });
 
     const fetchCategories = async () => {
         if (!user) return;
@@ -46,7 +47,7 @@ const Categories = () => {
             // Editar
             const { error } = await supabase
                 .from('categories')
-                .update({ name: formData.name, color_hex: formData.color_hex })
+                .update({ name: formData.name, color_hex: formData.color_hex, icon: formData.icon || null })
                 .eq('id', formData.id);
 
             if (!error) {
@@ -60,7 +61,8 @@ const Categories = () => {
                 .insert({
                     user_id: user.id,
                     name: formData.name,
-                    color_hex: formData.color_hex
+                    color_hex: formData.color_hex,
+                    icon: formData.icon || null
                 });
 
             if (!error) {
@@ -78,12 +80,12 @@ const Categories = () => {
     };
 
     const openNewForm = () => {
-        setFormData({ id: null, name: '', color_hex: PRESET_COLORS[0] });
+        setFormData({ id: null, name: '', color_hex: PRESET_COLORS[0], icon: '' });
         setIsFormOpen(true);
     };
 
     const openEditForm = (category) => {
-        setFormData({ id: category.id, name: category.name, color_hex: category.color_hex });
+        setFormData({ id: category.id, name: category.name, color_hex: category.color_hex, icon: category.icon || '' });
         setIsFormOpen(true);
     };
 
@@ -105,6 +107,17 @@ const Categories = () => {
                     <h3 style={{ marginBottom: '1rem' }}>{formData.id ? 'Editar Categoría' : 'Nueva Categoría'}</h3>
                     <form onSubmit={handleSubmit} className="category-form">
                         <div className="form-row" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                            <div className="form-group" style={{ width: '80px' }}>
+                                <label>Emoji</label>
+                                <input
+                                    type="text"
+                                    value={formData.icon}
+                                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                    maxLength="2"
+                                    placeholder="🍔"
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'white', textAlign: 'center', fontSize: '1.2rem' }}
+                                />
+                            </div>
                             <div className="form-group" style={{ flex: '1', minWidth: '200px' }}>
                                 <label>Nombre de la Categoría</label>
                                 <input
@@ -152,7 +165,9 @@ const Categories = () => {
                 <div className="categories-grid">
                     {categories.map((cat) => (
                         <div key={cat.id} className="glass-panel category-card">
-                            <div className="cat-color-badge" style={{ backgroundColor: cat.color_hex }}></div>
+                            <div className="cat-color-badge" style={{ backgroundColor: cat.color_hex }}>
+                                {cat.icon && <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '1.2rem' }}>{cat.icon}</span>}
+                            </div>
                             <div className="cat-info">
                                 <h3>{cat.name}</h3>
                             </div>

@@ -163,7 +163,9 @@ const Budgets = () => {
                                 <div key={cat.id} className="budget-row">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: cat.color_hex }}></div>
-                                        <span style={{ fontWeight: 500 }}>{cat.name}</span>
+                                        <span style={{ fontWeight: 500 }}>
+                                            {cat.icon ? `${cat.icon} ${cat.name}` : cat.name}
+                                        </span>
                                     </div>
 
                                     <div className="budget-limit-col">

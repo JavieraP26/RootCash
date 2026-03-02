@@ -5,7 +5,7 @@ node_modules/
 dist/
 build/
 
-# Variables de entorno — NUNCA subir esto
+# Variables de entorno
 .env
 .env.local
 .env.production
@@ -23,3 +23,9 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+backend/venv/

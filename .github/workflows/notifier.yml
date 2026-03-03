@@ -1,0 +1,35 @@
+name: 🔔 Notificador de Gastos Fijos
+
+on:
+  # Se ejecuta todos los días a las 9:00am hora Chile (UTC-3 = 12:00 UTC)
+  schedule:
+    - cron: '0 12 * * *'
+
+  # También permite ejecutarlo manualmente desde GitHub para testear
+  workflow_dispatch:
+
+jobs:
+  notificar:
+    name: Revisar deudas y enviar alertas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Instalar dependencias
+        run: pip install -r backend/requirements.txt
+
+      - name: 🚀 Ejecutar script de notificaciones
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+        run: python backend/main.py

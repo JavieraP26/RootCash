@@ -1,138 +1,163 @@
 import os
 import smtplib
+import calendar
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timedelta
-import requests
+from datetime import datetime
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# Cargar variables de entorno (usando .env para local, GitHub Secrets en prod)
 load_dotenv()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") # Usar Service Role para hacer bypass de RLS
-SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL")
-
-# Configuración Email
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD") # Contraseña de aplicación de Gmail
-EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER") # Para esta app, el correo del usuario (o hardcodeado temporalmente)
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
+
 
 def init_supabase() -> Client:
     if not SUPABASE_URL or not SUPABASE_KEY:
-        raise ValueError("Supabase credentials not found in environment variables")
+        raise ValueError("Credenciales de Supabase no encontradas.")
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def send_slack_notification(message: str):
-    if not SLACK_WEBHOOK_URL:
-        print("Webhook de Slack no configurado, saltando...")
-        return
-    
-    payload = {"text": message}
-    try:
-        response = requests.post(SLACK_WEBHOOK_URL, json=payload)
-        response.raise_for_status()
-        print("Notificación de Slack enviada con éxito.")
-    except Exception as e:
-        print(f"Error enviando mensaje a Slack: {e}")
 
-def send_email_notification(subject: str, body: str):
-    if not all([EMAIL_SENDER, EMAIL_PASSWORD, EMAIL_RECEIVER]):
-        print("Credenciales de Email no configuradas, saltando...")
+def send_email_notification(to_email: str, subject: str, body: str):
+    if not all([EMAIL_SENDER, EMAIL_PASSWORD]):
+        print("  ⚠️  Credenciales de Email no configuradas, saltando...")
         return
-    
+
     msg = MIMEMultipart()
     msg['From'] = EMAIL_SENDER
-    msg['To'] = EMAIL_RECEIVER
+    msg['To'] = to_email
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'html'))
 
     try:
-        # Usando Gmail SMTP por defecto
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
         server.send_message(msg)
         server.quit()
-        print("Correo enviado con éxito.")
+        print(f"  ✉️  Correo enviado a {to_email}")
     except Exception as e:
-        print(f"Error enviando correo: {e}")
+        print(f"  ❌ Error enviando correo a {to_email}: {e}")
 
-def check_due_debts():
-    print(f"--- Iniciando revisión de deudas: {datetime.now()} ---")
-    supabase = init_supabase()
-    
-    # 1. Traer deudas NO pagadas
-    response = supabase.table('fixed_debts').select('*').eq('is_paid', False).execute()
-    debts = response.data
-    
-    if not debts:
-        print("No hay deudas pendientes por pagar.")
-        return
 
+def check_debts_for_user(supabase: Client, user_id: str, user_email: str, display_name: str):
     today = datetime.now()
-    current_month_str = today.strftime("%Y-%m") # Ej: "2026-02"
+    current_month_str = today.strftime("%Y-%m")
+
+    # Traer todos los gastos fijos del usuario (sin filtro is_paid, no existe en el schema)
+    response = supabase.table('fixed_debts') \
+        .select('*') \
+        .eq('user_id', user_id) \
+        .execute()
+
+    debts = response.data
+    if not debts:
+        print(f"  → Sin gastos fijos para {display_name}.")
+        return
 
     for debt in debts:
         due_day = debt.get('due_day')
-        name = debt.get('name')
+        description = debt.get('description')   # la columna se llama 'description', no 'name'
         amount = debt.get('amount')
         last_notified = debt.get('last_notified_month')
 
         if not due_day:
             continue
 
-        # Validamos si ya fue notificado este mes
+        # No notificar dos veces el mismo mes
         if last_notified == current_month_str:
-            print(f"- Deuda '{name}' ya fue notificada este mes. Saltando.")
+            print(f"  → '{description}' ya fue notificada este mes. Saltando.")
             continue
 
-        # Constructor de la fecha de vencimiento para este mes
+        # Calcular fecha de vencimiento para este mes
         try:
-            # Manejo de meses con menos de 31 días si el due_day es 31
-            import calendar
-            _, last_day_of_month = calendar.monthrange(today.year, today.month)
-            safe_due_day = min(due_day, last_day_of_month)
+            _, last_day = calendar.monthrange(today.year, today.month)
+            safe_due_day = min(due_day, last_day)
             due_date = datetime(today.year, today.month, safe_due_day)
         except ValueError as e:
-            print(f"Error calculando fecha para '{name}': {e}")
+            print(f"  → Error calculando fecha para '{description}': {e}")
             continue
 
-        # 2. Calcular diferencia de días
         days_until_due = (due_date - today).days
 
-        # Solo notificar si faltan entre 0 y 3 días, o si ya se venció este mes (days < 0)
-        # y no ha sido pagado.
+        # Notificar si faltan 3 días o menos (incluye vencidos este mes)
         if days_until_due <= 3:
-            estado = "⚠️ VENCE ESTE MES" if days_until_due < 0 else f"Faltan {days_until_due} día(s)"
             if days_until_due == 0:
                 estado = "🔥 VENCE HOY"
-            
-            message_text = f"🚨 *Aviso RootCash:* Tu deuda *{name}* por *${amount:,}* vence pronto ({estado}). ¡No olvides pagarla!"
+            elif days_until_due < 0:
+                estado = f"⚠️ Venció hace {abs(days_until_due)} día(s)"
+            else:
+                estado = f"⏰ Faltan {days_until_due} día(s)"
+
             html_body = f"""
             <html>
-                <body>
-                    <h2>Aviso de Vencimiento - RootCash</h2>
-                    <p>Hola,</p>
-                    <p>Te recordamos que tu deuda/gasto fijo <strong>{name}</strong> por el monto de <strong>${amount:,}</strong> está próxima a vencer.</p>
-                    <p><strong>Estado:</strong> {estado}</p>
-                    <br>
-                    <p>Entra a la app para marcarla como pagada y mantener tu presupuesto al día.</p>
+                <body style="font-family: Arial, sans-serif; color: #333; background: #f5f5f5; padding: 20px;">
+                    <div style="max-width: 500px; margin: auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.1);">
+                        <div style="background: #1a1a2e; padding: 24px; text-align: center;">
+                            <h1 style="color: #c8f542; margin: 0; font-size: 28px;">🌱 RootCash</h1>
+                            <p style="color: #aaa; margin: 6px 0 0; font-size: 14px;">Recordatorio de pago</p>
+                        </div>
+                        <div style="padding: 28px;">
+                            <p style="font-size: 16px;">Hola <strong>{display_name}</strong> 👋,</p>
+                            <p>Tu gasto fijo <strong>"{description}"</strong> por
+                            <strong>${int(amount):,}</strong> está próximo a vencer.</p>
+                            <div style="background: #f0f9e8; border-left: 4px solid #c8f542;
+                                        padding: 14px 18px; border-radius: 6px; margin: 20px 0; font-size: 15px;">
+                                <strong>Estado:</strong> {estado}
+                            </div>
+                            <p style="color: #555;">Entra a la app para registrar el pago y mantener tu presupuesto al día. 💚</p>
+                        </div>
+                        <div style="background: #f9f9f9; padding: 14px; text-align: center; font-size: 12px; color: #aaa;">
+                            RootCash — Tus raíces financieras importan 🌱
+                        </div>
+                    </div>
                 </body>
             </html>
             """
 
-            print(f">> Notificando: {name} (Faltan {days_until_due} días)")
-            
-            # Enviar Notificaciones
-            send_slack_notification(message_text)
-            send_email_notification(f"RootCash - Pago de {name} próximo a vencer", html_body)
+            print(f"  → Notificando a {display_name}: '{description}' ({estado})")
+            send_email_notification(
+                to_email=user_email,
+                subject=f"RootCash — Pago de {description} próximo a vencer",
+                body=html_body
+            )
 
-            # 3. Actualizar la base de datos para no enviar de nuevo este mes
+            # Marcar como notificado este mes para no re-enviar
             supabase.table('fixed_debts').update({
                 'last_notified_month': current_month_str
             }).eq('id', debt['id']).execute()
 
+
+def run():
+    print(f"\n{'='*50}")
+    print(f"🌱 RootCash Notificador — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"{'='*50}")
+
+    supabase = init_supabase()
+
+    # Obtener todos los usuarios desde la tabla profiles (tiene email, display_name e id)
+    profiles_response = supabase.table('profiles').select('id, email, display_name').execute()
+    users = profiles_response.data
+
+    if not users:
+        print("No hay usuarios registrados.")
+        return
+
+    print(f"Usuarios encontrados: {len(users)}\n")
+
+    for user in users:
+        user_id = user.get('id')
+        user_email = user.get('email')
+        display_name = user.get('display_name') or user_email
+
+        print(f"👤 Revisando: {display_name} ({user_email})")
+        check_debts_for_user(supabase, user_id, user_email, display_name)
+
+    print(f"\n✅ Revisión completada.")
+
+
 if __name__ == "__main__":
-    check_due_debts()
+    run()

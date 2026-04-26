@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "dependencies": {
     "recharts": "^3.7.0"
   }

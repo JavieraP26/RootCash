@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCLP } from '../utils/formatters';
-import { Plus, Trash2, CalendarClock, Tag } from 'lucide-react';
+import { Plus, Trash2, CalendarClock, Tag, Pencil } from 'lucide-react';
 import './FixedDebts.css';
 
 const FixedDebts = () => {
@@ -12,6 +12,7 @@ const FixedDebts = () => {
     const [loading, setLoading] = useState(true);
 
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingId, setEditingId] = useState(null); // null = creando, uuid = editando
     const [formData, setFormData] = useState({
         description: '',
         amount: '',
@@ -41,20 +42,35 @@ const FixedDebts = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleEdit = (debt) => {
+        setEditingId(debt.id);
+        setFormData({
+            description: debt.description,
+            amount: debt.amount,
+            due_day: debt.due_day,
+            category_id: debt.category_id || ''
+        });
+        setIsFormOpen(true);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!user) return;
 
-        const { error } = await supabase.from('fixed_debts').insert({
-            user_id: user.id,
+        const payload = {
             description: formData.description,
             amount: parseFloat(formData.amount),
             due_day: parseInt(formData.due_day),
             category_id: formData.category_id || null
-        });
+        };
+
+        const { error } = editingId
+            ? await supabase.from('fixed_debts').update(payload).eq('id', editingId).eq('user_id', user.id)
+            : await supabase.from('fixed_debts').insert({ user_id: user.id, ...payload });
 
         if (!error) {
             setIsFormOpen(false);
+            setEditingId(null);
             setFormData({ description: '', amount: '', due_day: 1, category_id: '' });
             fetchData();
         } else {
@@ -104,7 +120,7 @@ const FixedDebts = () => {
 
             {isFormOpen && (
                 <div className="glass-panel p-6" style={{ marginBottom: '2rem', padding: '1.5rem', animation: 'fadeIn 0.3s ease' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>Agregar Deuda o Gasto Fijo</h3>
+                    <h3 style={{ marginBottom: '1rem' }}>{editingId ? 'Editar Gasto Fijo' : 'Agregar Deuda o Gasto Fijo'}</h3>
                     <form onSubmit={handleSubmit} className="fixed-form">
                         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                             <div className="form-group" style={{ flex: '1', minWidth: '200px' }}>
@@ -161,8 +177,8 @@ const FixedDebts = () => {
                         </div>
 
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-                            <button type="button" onClick={() => setIsFormOpen(false)} style={{ color: 'var(--text-muted)' }}>Cancelar</button>
-                            <button type="submit" className="btn-primary">Guardar Fijo</button>
+                            <button type="button" onClick={() => { setIsFormOpen(false); setEditingId(null); setFormData({ description: '', amount: '', due_day: 1, category_id: '' }); }} style={{ color: 'var(--text-muted)' }}>Cancelar</button>
+                            <button type="submit" className="btn-primary">{editingId ? 'Guardar Cambios' : 'Guardar Fijo'}</button>
                         </div>
                     </form>
                 </div>
@@ -202,6 +218,7 @@ const FixedDebts = () => {
                                 </div>
                                 <div className="debt-actions mt-4" style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                                     <button className="btn-primary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }} onClick={() => handlePayNow(debt)}>Pagar / Descontar</button>
+                                    <button className="icon-btn" onClick={() => handleEdit(debt)}><Pencil size={18} /></button>
                                     <button className="icon-btn delete" onClick={() => handleDelete(debt.id)}><Trash2 size={18} /></button>
                                 </div>
                             </div>

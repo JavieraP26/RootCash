@@ -128,7 +128,7 @@
 .mobile-toggle {
     display: none;
     position: fixed;
-    top: 1rem;
+    top: calc(1rem + env(safe-area-inset-top));
     right: 1rem;
     z-index: 60;
     background: var(--bg-card);
@@ -156,6 +156,7 @@
         /* fallback para navegadores viejos */
         height: 100dvh;
         /* altura real sin contar barra del navegador */
+        padding-top: calc(1.5rem + env(safe-area-inset-top));
         overflow-y: auto;
         border-radius: 0;
         border-right: 1px solid var(--glass-border);

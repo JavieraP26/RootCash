@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
             });
             if (error) throw error;
         } catch (error) {
-            console.error('Error logging in with Google:', error.message);
+            if (import.meta.env.DEV) console.error('Error logging in with Google:', error.message);
             alert('Error al iniciar sesión con Google.');
         }
     };
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
         } catch (error) {
-            console.error('Error at logout:', error.message);
+            if (import.meta.env.DEV) console.error('Error at logout:', error.message);
         }
     };
 

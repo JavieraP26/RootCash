@@ -64,7 +64,7 @@ const TransactionModal = ({ isOpen, onClose, onSuccess }) => {
         setLoading(false);
 
         if (error) {
-            console.error("Error guardando transacción:", error);
+            if (import.meta.env.DEV) console.error("Error guardando transacción:", error);
             alert("Error al guardar movimiento");
         } else {
             onSuccess();

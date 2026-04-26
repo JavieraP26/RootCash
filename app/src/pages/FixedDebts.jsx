@@ -57,10 +57,15 @@ const FixedDebts = () => {
         e.preventDefault();
         if (!user) return;
 
+        const amount = parseFloat(formData.amount);
+        const due_day = parseInt(formData.due_day, 10);
+        if (isNaN(amount) || amount <= 0) { alert('Ingresa un monto válido.'); return; }
+        if (isNaN(due_day) || due_day < 1 || due_day > 31) { alert('El día debe estar entre 1 y 31.'); return; }
+
         const payload = {
             description: formData.description,
-            amount: parseFloat(formData.amount),
-            due_day: parseInt(formData.due_day),
+            amount,
+            due_day,
             category_id: formData.category_id || null
         };
 

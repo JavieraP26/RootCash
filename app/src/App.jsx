@@ -18,6 +18,7 @@ import Budgets from './pages/Budgets';
 import FixedDebts from './pages/FixedDebts';
 import Profile from './pages/Profile';
 import Stats from './pages/Stats';
+import Settings from './pages/Settings';
 
 const MainLayout = ({ children }) => {
   return (
@@ -53,6 +54,7 @@ const AppRoutes = () => {
       <Route path="/deudas" element={<ProtectedRoute><MainLayout><FixedDebts /></MainLayout></ProtectedRoute>} />
       <Route path="/perfil" element={<ProtectedRoute><MainLayout><Profile /></MainLayout></ProtectedRoute>} />
       <Route path="/estadisticas" element={<ProtectedRoute><MainLayout><Stats /></MainLayout></ProtectedRoute>} />
+      <Route path="/configuracion" element={<ProtectedRoute><MainLayout><Settings /></MainLayout></ProtectedRoute>} />
       {/* Añadiremos las otras rutas en breve */}
     </Routes>
   );

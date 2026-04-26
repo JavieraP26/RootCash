@@ -11,7 +11,8 @@ import {
     BarChart2,
     LogOut,
     Menu,
-    X
+    X,
+    Settings
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import './Sidebar.css';
@@ -44,6 +45,7 @@ const Sidebar = () => {
         { name: 'Estadísticas', path: '/estadisticas', icon: <BarChart2 size={20} /> },
         { name: 'Categorías', path: '/categorias', icon: <Tags size={20} /> },
         { name: 'Gastos Fijos', path: '/deudas', icon: <CalendarClock size={20} /> },
+        { name: 'Configuración', path: '/configuracion', icon: <Settings size={20} /> },
     ];
 
     const displayName = profile?.display_name || user?.email?.split('@')[0];

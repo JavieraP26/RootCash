@@ -1,0 +1,354 @@
+.settings-header {
+    margin-bottom: 2rem;
+}
+
+.settings-header h1 {
+    font-size: 1.75rem;
+    color: var(--text-main);
+}
+
+.settings-subtitle {
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+}
+
+/* Mensaje de éxito / error */
+.settings-message {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.settings-message.success {
+    background: rgba(90, 158, 111, 0.15);
+    border: 1px solid rgba(90, 158, 111, 0.3);
+    color: var(--accent);
+}
+
+.settings-message.error {
+    background: rgba(184, 84, 80, 0.15);
+    border: 1px solid rgba(184, 84, 80, 0.3);
+    color: var(--danger);
+}
+
+.message-close {
+    margin-left: auto;
+    color: inherit;
+    opacity: 0.6;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 0.25rem;
+    cursor: pointer;
+}
+
+.message-close:hover {
+    opacity: 1;
+}
+
+/* Sección */
+.settings-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.settings-section-header {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: rgba(78, 128, 96, 0.15);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.settings-section-header h2 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    margin-bottom: 0.25rem;
+}
+
+.settings-section-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Lista compartida por cuentas y remitentes */
+.accounts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.settings-empty {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+}
+
+/* ── Item de cuenta Gmail conectada ── */
+.account-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.account-icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.account-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    overflow: hidden;
+}
+
+.account-email {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.account-disconnect {
+    color: var(--text-muted);
+    padding: 0.4rem;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.account-disconnect:hover {
+    color: var(--danger);
+    background: rgba(184, 84, 80, 0.1);
+}
+
+/* ── Item de remitente ── */
+.source-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.source-item.inactive {
+    opacity: 0.5;
+}
+
+.source-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    overflow: hidden;
+}
+
+.source-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.source-email {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.source-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Toggle activo/inactivo */
+.source-toggle {
+    width: 36px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--border);
+    position: relative;
+    transition: background 0.2s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.source-toggle.active {
+    background: var(--primary);
+}
+
+.toggle-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: transform 0.2s ease, background 0.2s ease;
+    display: block;
+}
+
+.source-toggle.active .toggle-knob {
+    transform: translateX(16px);
+    background: white;
+}
+
+/* Formulario para añadir remitente */
+.source-add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem;
+    background: rgba(78, 128, 96, 0.06);
+    border: 1px solid rgba(78, 128, 96, 0.2);
+    border-radius: var(--radius-md);
+}
+
+.source-input {
+    width: 100%;
+    padding: 0.65rem 0.875rem;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    outline: none;
+    transition: var(--transition);
+}
+
+.source-input:focus {
+    border-color: var(--primary);
+}
+
+.source-input::placeholder {
+    color: var(--text-muted);
+}
+
+.source-form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.btn-save-source {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    background: var(--primary);
+    color: var(--text-main);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn-save-source:hover:not(:disabled) {
+    background: var(--primary-hover);
+}
+
+.btn-save-source:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-cancel-source {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.btn-cancel-source:hover {
+    color: var(--text-main);
+    border-color: var(--text-muted);
+}
+
+/* Botón añadir (compartido) */
+.btn-connect-gmail {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--border);
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.25rem;
+}
+
+.btn-connect-gmail:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: rgba(78, 128, 96, 0.08);
+}
+
+.btn-connect-gmail:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Spinner */
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Loading */
+.settings-loading {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+}

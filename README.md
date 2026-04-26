@@ -1,8 +1,6 @@
-# <img src="./app/public/icon.svg" width="32" height="32" /> RootCash — Control de Finanzas Personales
+# <img src="./app/public/logo.svg" width="45" height="45" /> RootCash — Control de Finanzas Personales
 
 > Tu dinero, bajo control. Una app web moderna para gestionar tus ingresos, gastos, presupuestos y deudas fijas en Pesos Chilenos (CLP).
-
-<img src="./app/public/logo.svg" alt="RootCash Banner" width="350" />
 
 ---
 

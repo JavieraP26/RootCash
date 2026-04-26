@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#1a2016"/>
+
+  <!-- Roots -->
+  <path d="M256 375 Q228 362 214 378" stroke="#5d4025" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M256 375 Q284 362 298 378" stroke="#5d4025" stroke-width="11" stroke-linecap="round" fill="none"/>
+
+  <!-- Stem -->
+  <path d="M256 375 Q250 320 256 238" stroke="#7a5c35" stroke-width="14" stroke-linecap="round" fill="none"/>
+
+  <!-- Left leaf -->
+  <path d="M253 298 Q206 264 200 218 C 200 218 244 224 256 288 Z" fill="#4a7c5a"/>
+  <path d="M253 298 Q226 266 201 219" stroke="#3d6b4a" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+
+  <!-- Right leaf -->
+  <path d="M259 322 Q310 284 318 234 C 318 234 272 244 260 316 Z" fill="#5a9e6a"/>
+  <path d="M259 322 Q288 288 317 235" stroke="#4a8a58" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+
+  <!-- Bud -->
+  <path d="M256 238 C 246 225 246 210 256 202 C 266 210 266 225 256 238 Z" fill="#8fb87a"/>
+  <path d="M256 233 C 250 223 250 213 256 207 C 262 213 262 223 256 233 Z" fill="#b0d49a" opacity="0.8"/>
+</svg>

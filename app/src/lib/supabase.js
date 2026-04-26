@@ -7,4 +7,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.warn("Faltan las variables de entorno de Supabase")
 }
 
-export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "")
+export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "", {
+    auth: {
+        flowType: 'pkce',
+        detectSessionInUrl: true,
+    }
+})

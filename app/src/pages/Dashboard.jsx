@@ -2,143 +2,80 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCLP, parseAmount, formatDate } from '../utils/formatters';
-import { TrendingUp, TrendingDown, Wallet, Plus, ArrowUpRight, ArrowDownRight, Pencil, Check, X, Download, Lightbulb } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Plus, ArrowUpRight, ArrowDownRight, Pencil, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import TransactionModal from '../components/TransactionModal';
 import SavingsGoal from '../components/SavingsGoal';
 import './Dashboard.css';
 
-const FinancialAdvice = ({ baseIncome, totalIncome, totalExpenses, transactions, profile }) => {
-    if (totalIncome === 0 && totalExpenses === 0) return null;
-
-    let advice = { type: 'neutral', text: 'Registra más movimientos para recibir consejos personalizados.', title: '¡Hola!' };
-    const balance = totalIncome - totalExpenses;
-    const progressToGoal = profile?.savings_goal_amount ? balance / profile.savings_goal_amount : 0;
-
-    // Análisis de categorías
-    const expensesByCategory = {};
-    transactions.filter(t => t.type === 'expense').forEach(t => {
-        const cat = t.category_id || 'other';
-        expensesByCategory[cat] = (expensesByCategory[cat] || 0) + parseFloat(t.amount);
-    });
-
-    let topWarningCategory = null;
-    if (totalExpenses > 0) {
-        for (const [cat, amount] of Object.entries(expensesByCategory)) {
-            if (amount > totalExpenses * 0.45) topWarningCategory = amount; // Más del 45% en una sola cosa
-        }
-    }
-
-    if (balance < 0) {
-        advice = {
-            type: 'danger',
-            title: 'Alerta de sobregiro',
-            text: 'Estás gastando más de lo que ingresa. Toma un respiro y revisa si puedes pausar alguna compra no esencial este mes. ¡Puedes recuperar el control!'
-        };
-    } else if (totalExpenses > totalIncome * 0.85) {
-        advice = {
-            type: 'warning',
-            title: 'Cuidado con el límite',
-            text: 'Estás muy cerca de gastar todo tu saldo. Intenta cuidar los gastos hormiga los próximos días para cerrar el mes tranquilo/a.'
-        };
-    } else if (topWarningCategory) {
-        advice = {
-            type: 'warning',
-            title: 'Gasto concentrado',
-            text: 'Notamos que casi la mitad de tus gastos se van en una sola categoría. Revisa tus presupuestos para asegurar que esté dentro de lo planeado.'
-        };
-    } else if (profile?.savings_goal_amount && progressToGoal >= 1) {
-        advice = {
-            type: 'success',
-            title: '¡Meta lograda!',
-            text: '¡Increíble! Ya superaste tu meta de ahorro para este periodo. Considerando el saldo a favor, es un excelente momento para mover ese dinero a una cuenta de ahorro o inversión.'
-        };
-    } else if (balance > totalIncome * 0.4) {
-        advice = {
-            type: 'success',
-            title: 'Excelente margen',
-            text: 'Llevas un control fantástico este mes. Tienes un buen margen a favor, ideal para destinar una parte a tu fondo de emergencia.'
-        };
-    } else {
-        advice = {
-            type: 'neutral',
-            title: 'Vas por buen camino',
-            text: 'Tus finanzas se ven estables este mes. Sigue registrando todo para mantener la claridad.'
-        };
-    }
-
-    const getColors = (type) => {
-        switch (type) {
-            case 'danger': return { bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.3)', icon: 'var(--danger)' };
-            case 'warning': return { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.3)', icon: '#f59e0b' };
-            case 'success': return { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.3)', icon: 'var(--accent)' };
-            default: return { bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.3)', icon: 'var(--primary)' };
-        }
-    };
-    const colors = getColors(advice.type);
-
-    return (
-        <div style={{
-            marginTop: '1.5rem', padding: '1.25rem 1.5rem', borderRadius: 'var(--radius-md)',
-            background: colors.bg, border: `1px solid ${colors.border}`, display: 'flex', gap: '1rem', alignItems: 'flex-start'
-        }}>
-            <div style={{ padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '50%', color: colors.icon }}>
-                <Lightbulb size={20} />
-            </div>
-            <div>
-                <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--text-main)', fontSize: '0.95rem' }}>{advice.title}</h4>
-                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.5 }}>
-                    {advice.text}
-                </p>
-            </div>
-        </div>
-    );
-};
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 const Dashboard = () => {
     const { user } = useAuth();
     const [profile, setProfile] = useState(null);
-    const [transactions, setTransactions] = useState([]);
-    const [streak, setStreak] = useState(0); // Racha de meses en positivo
+    const [allTransactions, setAllTransactions] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Estado para editar el sueldo
+    const now = new Date();
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+
     const [editingIncome, setEditingIncome] = useState(false);
     const [incomeInput, setIncomeInput] = useState('');
     const [savingIncome, setSavingIncome] = useState(false);
+
+    // Transacciones del mes seleccionado (derivado, no estado)
+    const transactions = allTransactions.filter(t => {
+        const d = new Date(t.date + 'T00:00:00');
+        return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+    });
+
+    const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
+
+    const defaultDate = isCurrentMonth
+        ? now.toISOString().split('T')[0]
+        : `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`;
+
+    const goToPrevMonth = () => {
+        if (selectedMonth === 0) {
+            setSelectedMonth(11);
+            setSelectedYear(y => y - 1);
+        } else {
+            setSelectedMonth(m => m - 1);
+        }
+    };
+
+    const goToNextMonth = () => {
+        if (isCurrentMonth) return;
+        if (selectedMonth === 11) {
+            setSelectedMonth(0);
+            setSelectedYear(y => y + 1);
+        } else {
+            setSelectedMonth(m => m + 1);
+        }
+    };
 
     const fetchData = async () => {
         if (!user) return;
         setLoading(true);
         try {
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
+            const [{ data: profileData }, { data: transData }, { data: catsData }] = await Promise.all([
+                supabase.from('profiles').select('*').eq('id', user.id).single(),
+                supabase.from('transactions').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+                supabase.from('categories').select('id, name, color_hex, icon').eq('user_id', user.id),
+            ]);
 
             if (profileData) setProfile(profileData);
-
-            const date = new Date();
-            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
-            const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
-
-            const { data: transData } = await supabase
-                .from('transactions')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('date', { ascending: false });
+            if (catsData) setCategories(catsData);
 
             if (transData) {
-                // Separar transacciones del mes actual para el dashboard
-                const currentMonthTrans = transData.filter(t => t.date >= firstDay.split('T')[0] && t.date <= lastDay.split('T')[0]);
-                setTransactions(currentMonthTrans);
+                setAllTransactions(transData);
 
-                // Calcular Racha (Streak) de meses en positivo hacia atrás
+                // Calcular racha de meses en positivo hacia atrás
                 let currentStreak = 0;
-                let checkDate = new Date(date.getFullYear(), date.getMonth() - 1, 1); // Empezar evaluando el mes anterior
+                let checkDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-                // Mapear transacciones por mes para evaluación rápida
                 const monthlyStats = {};
                 transData.forEach(t => {
                     const d = new Date(t.date + 'T00:00:00');
@@ -149,18 +86,16 @@ const Dashboard = () => {
                     else monthlyStats[key].out += parseFloat(t.amount);
                 });
 
-                // Contar hacia atrás mientras el mes tenga datos y saldo positivo (Ingresos + Sueldo > Gastos)
                 const baseInc = profileData?.monthly_income || 0;
                 while (true) {
                     const key = `${checkDate.getFullYear()}-${checkDate.getMonth()}`;
-                    if (!monthlyStats[key] || !monthlyStats[key].hasData) break; // Si no hay datos ese mes, se corta la racha
-
+                    if (!monthlyStats[key] || !monthlyStats[key].hasData) break;
                     const totalIn = baseInc + monthlyStats[key].in;
                     if (totalIn >= monthlyStats[key].out) {
                         currentStreak++;
                         checkDate.setMonth(checkDate.getMonth() - 1);
                     } else {
-                        break; // Mes negativo, se corta la racha
+                        break;
                     }
                 }
                 setStreak(currentStreak);
@@ -208,6 +143,18 @@ const Dashboard = () => {
     const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0);
     const currentBalance = totalIncome - totalExpenses;
 
+    // Resumen de gastos por categoría del mes seleccionado
+    const expensesByCategory = categories.map(cat => {
+        const total = transactions
+            .filter(t => t.type === 'expense' && t.category_id === cat.id)
+            .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+        return { ...cat, total };
+    }).filter(c => c.total > 0).sort((a, b) => b.total - a.total);
+
+    const uncategorizedExpenses = transactions
+        .filter(t => t.type === 'expense' && !t.category_id)
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
     if (loading && !profile) return (
         <div className="dashboard-container fade-in">
             <p className="text-muted p-4">Cargando tu resumen...</p>
@@ -218,16 +165,39 @@ const Dashboard = () => {
         <div className="dashboard-container fade-in">
             <header className="dashboard-header">
                 <div>
-                    <h1 className="greeting" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <h1 className="greeting">
                         Hola, {profile?.display_name || user?.email?.split('@')[0]} 👋
-                        {streak > 0 && (
-                            <span style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'rgba(249, 115, 22, 0.1)', color: '#f97316', padding: '0.2rem 0.6rem', borderRadius: '1rem', border: '1px solid rgba(249, 115, 22, 0.2)' }}>
-                                <span style={{ fontSize: '1.2rem' }}>🔥</span> {streak} {streak === 1 ? 'mes invicto' : 'meses invictos'}
-                            </span>
-                        )}
                     </h1>
-                    <p className="subtitle">Aquí está tu resumen de este mes.</p>
+
+                    {/* Navegación de meses */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <button
+                            onClick={goToPrevMonth}
+                            style={{ background: 'none', color: 'var(--text-muted)', padding: '0.2rem', borderRadius: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+                        <p className="subtitle" style={{ margin: 0, minWidth: '170px', textAlign: 'center' }}>
+                            {isCurrentMonth ? 'Resumen de este mes' : `Resumen de ${MESES[selectedMonth]} ${selectedYear}`}
+                        </p>
+                        <button
+                            onClick={goToNextMonth}
+                            style={{
+                                background: 'none',
+                                color: isCurrentMonth ? 'var(--border)' : 'var(--text-muted)',
+                                padding: '0.2rem', borderRadius: '4px', display: 'flex', alignItems: 'center',
+                                cursor: isCurrentMonth ? 'default' : 'pointer',
+                            }}
+                            onMouseEnter={e => { if (!isCurrentMonth) e.currentTarget.style.color = 'white'; }}
+                            onMouseLeave={e => { if (!isCurrentMonth) e.currentTarget.style.color = 'var(--text-muted)'; }}
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
                 </div>
+
                 <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setIsModalOpen(true)}>
                     <Plus size={20} />
                     <span>Nuevo</span>
@@ -235,7 +205,7 @@ const Dashboard = () => {
             </header>
 
             <div className="stats-grid">
-                {/* Tarjeta Sueldo / Ingresos — con editor inline */}
+                {/* Tarjeta Sueldo / Ingresos */}
                 <div className="stat-card glass-panel">
                     <div className="stat-icon income"><TrendingUp size={24} /></div>
                     <div className="stat-details" style={{ flex: 1 }}>
@@ -292,7 +262,9 @@ const Dashboard = () => {
                 <div className="stat-card glass-panel">
                     <div className="stat-icon expense"><TrendingDown size={24} /></div>
                     <div className="stat-details">
-                        <p className="stat-label">Gastos del Mes</p>
+                        <p className="stat-label">
+                            {isCurrentMonth ? 'Gastos del Mes' : `Gastos de ${MESES[selectedMonth]}`}
+                        </p>
                         <h3 className="stat-value">{formatCLP(totalExpenses)}</h3>
                     </div>
                 </div>
@@ -308,32 +280,84 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div style={{ marginTop: '1.5rem' }}>
-                <SavingsGoal
-                    monthlyIncome={totalIncome}
-                    monthlyExpenses={totalExpenses}
-                    profile={profile}
-                    onProfileUpdate={(updates) => setProfile(prev => ({ ...prev, ...updates }))}
-                />
-
-                <FinancialAdvice
-                    baseIncome={baseIncome}
-                    totalIncome={totalIncome}
-                    totalExpenses={totalExpenses}
-                    transactions={transactions}
-                    profile={profile}
-                />
-            </div>
+            {/* Resumen por categoría */}
+            {expensesByCategory.length > 0 && (
+                <div className="glass-panel" style={{ padding: '1.5rem' }}>
+                    <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
+                        Gastos por categoría — {isCurrentMonth ? 'este mes' : `${MESES[selectedMonth]} ${selectedYear}`}
+                    </h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {expensesByCategory.map(cat => {
+                            const pct = totalExpenses > 0 ? Math.round((cat.total / totalExpenses) * 100) : 0;
+                            return (
+                                <div key={cat.id}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                                            {cat.icon && <span>{cat.icon}</span>}
+                                            <span style={{ color: 'var(--text-main)' }}>{cat.name}</span>
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{pct}%</span>
+                                        </span>
+                                        <span style={{ fontWeight: 600, color: 'var(--danger)', fontSize: '0.9rem' }}>
+                                            {formatCLP(cat.total)}
+                                        </span>
+                                    </div>
+                                    <div style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)' }}>
+                                        <div style={{
+                                            height: '100%', borderRadius: '2px',
+                                            width: `${pct}%`,
+                                            background: cat.color_hex || 'var(--accent)',
+                                            transition: 'width 0.4s ease'
+                                        }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {uncategorizedExpenses > 0 && (
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sin categoría</span>
+                                    <span style={{ fontWeight: 600, color: 'var(--danger)', fontSize: '0.9rem' }}>
+                                        {formatCLP(uncategorizedExpenses)}
+                                    </span>
+                                </div>
+                                <div style={{ height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)' }}>
+                                    <div style={{
+                                        height: '100%', borderRadius: '2px',
+                                        width: `${totalExpenses > 0 ? Math.round((uncategorizedExpenses / totalExpenses) * 100) : 0}%`,
+                                        background: 'var(--text-muted)',
+                                        transition: 'width 0.4s ease'
+                                    }} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <div className="recent-activity-section">
                 <div className="glass-panel p-6" style={{ marginTop: '2rem', padding: '1.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h2 style={{ fontSize: '1.25rem' }}>Movimientos Recientes</h2>
+                        <h2 style={{ fontSize: '1.25rem' }}>
+                            {isCurrentMonth ? 'Movimientos Recientes' : `Movimientos — ${MESES[selectedMonth]} ${selectedYear}`}
+                        </h2>
                     </div>
 
                     {transactions.length === 0 ? (
                         <div className="empty-state" style={{ padding: '2rem', textAlign: 'center' }}>
-                            <p className="text-muted">Aún no has registrado transacciones este mes.</p>
+                            <p className="text-muted">
+                                {isCurrentMonth
+                                    ? 'Aún no has registrado transacciones este mes.'
+                                    : `No hay transacciones registradas para ${MESES[selectedMonth]} ${selectedYear}.`}
+                            </p>
+                            {!isCurrentMonth && (
+                                <button
+                                    className="btn-primary"
+                                    style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                                    onClick={() => setIsModalOpen(true)}
+                                >
+                                    <Plus size={16} /> Agregar transacción
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <div className="transactions-list">
@@ -365,10 +389,18 @@ const Dashboard = () => {
                 </div>
             </div>
 
+            <SavingsGoal
+                monthlyIncome={totalIncome}
+                monthlyExpenses={totalExpenses}
+                profile={profile}
+                onProfileUpdate={(updates) => setProfile(prev => ({ ...prev, ...updates }))}
+            />
+
             <TransactionModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchData}
+                defaultDate={defaultDate}
             />
         </div>
     );

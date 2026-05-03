@@ -17,9 +17,27 @@ const GENDER_OPTIONS = [
     { value: 'otro', label: 'Otro' },
 ];
 
+const toDisplayDate = (iso) => {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+};
+
+const toISODate = (display) => {
+    const parts = (display || '').replace(/\s/g, '').split('/');
+    if (parts.length !== 3) return '';
+    const [d, m, y] = parts;
+    if (d.length !== 2 || m.length !== 2 || y.length !== 4) return '';
+    if (isNaN(Date.parse(`${y}-${m}-${d}`))) return '';
+    return `${y}-${m}-${d}`;
+};
+
 const formatJobDate = (dateStr) => {
     if (!dateStr) return null;
-    const d = new Date(dateStr + 'T00:00:00');
+    const iso = /^\d{2}\/\d{2}\/\d{4}$/.test(dateStr) ? toISODate(dateStr) : dateStr;
+    if (!iso) return null;
+    const d = new Date(iso + 'T00:00:00');
+    if (isNaN(d.getTime())) return null;
     return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
@@ -51,8 +69,8 @@ const Profile = () => {
                     age: data.age || '',
                     gender: data.gender || '',
                     job_title: data.job_title || '',
-                    job_start_date: data.job_start_date || '',
-                    job_end_date: data.job_end_date || '',
+                    job_start_date: data.job_start_date ? toDisplayDate(data.job_start_date) : '',
+                    job_end_date: data.job_end_date ? toDisplayDate(data.job_end_date) : '',
                     job_is_current: !data.job_end_date,
                 });
             }
@@ -66,6 +84,15 @@ const Profile = () => {
         setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
+    const handleDateField = (e) => {
+        const { name } = e.target;
+        const raw = e.target.value.replace(/[^\d]/g, '');
+        let v = raw;
+        if (raw.length > 2) v = raw.slice(0, 2) + '/' + raw.slice(2);
+        if (raw.length > 4) v = raw.slice(0, 2) + '/' + raw.slice(2, 4) + '/' + raw.slice(4, 8);
+        setForm(prev => ({ ...prev, [name]: v }));
+    };
+
     const handleSave = async () => {
         setSaving(true);
         const { error } = await supabase.from('profiles').update({
@@ -74,8 +101,8 @@ const Profile = () => {
             age: form.age ? parseInt(form.age) : null,
             gender: form.gender || null,
             job_title: form.job_title || null,
-            job_start_date: form.job_start_date || null,
-            job_end_date: form.job_is_current ? null : (form.job_end_date || null),
+            job_start_date: toISODate(form.job_start_date) || null,
+            job_end_date: form.job_is_current ? null : (toISODate(form.job_end_date) || null),
         }).eq('id', user.id);
 
         setSaving(false);
@@ -209,13 +236,13 @@ const Profile = () => {
                         <div className="form-grid" style={{ marginTop: '1rem' }}>
                             <div className="form-group">
                                 <label>Fecha de inicio</label>
-                                <input type="date" name="job_start_date" value={form.job_start_date} onChange={handleChange} />
+                                <input type="text" inputMode="numeric" placeholder="dd/mm/aaaa" maxLength={10} name="job_start_date" value={form.job_start_date} onChange={handleDateField} />
                             </div>
 
                             {!form.job_is_current && (
                                 <div className="form-group">
                                     <label>Fecha de término</label>
-                                    <input type="date" name="job_end_date" value={form.job_end_date} onChange={handleChange} />
+                                    <input type="text" inputMode="numeric" placeholder="dd/mm/aaaa" maxLength={10} name="job_end_date" value={form.job_end_date} onChange={handleDateField} />
                                 </div>
                             )}
                         </div>

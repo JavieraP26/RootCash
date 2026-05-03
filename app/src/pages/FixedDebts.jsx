@@ -223,7 +223,7 @@ const FixedDebts = () => {
                                 </div>
                                 <div className="debt-actions mt-4" style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                                     <button className="btn-primary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }} onClick={() => handlePayNow(debt)}>Pagar / Descontar</button>
-                                    <button className="icon-btn" onClick={() => handleEdit(debt)}><Pencil size={18} /></button>
+                                    <button className="icon-btn edit" onClick={() => handleEdit(debt)}><Pencil size={18} /></button>
                                     <button className="icon-btn delete" onClick={() => handleDelete(debt.id)}><Trash2 size={18} /></button>
                                 </div>
                             </div>

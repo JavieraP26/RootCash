@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCLP, formatDate } from '../utils/formatters';
-import { ArrowUpRight, ArrowDownRight, Search, FileText, Trash2, Calendar, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Search, FileText, Trash2, Calendar, ChevronLeft, ChevronRight, Download, Plus } from 'lucide-react';
+import TransactionModal from '../components/TransactionModal';
 import './Transactions.css';
 
 const MovimientosView = () => {
@@ -10,12 +11,15 @@ const MovimientosView = () => {
     const [transactions, setTransactions] = useState([]);
     const [categories, setCategories] = useState({});
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const now = new Date();
 
     // Filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
-    const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-    const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+    const [currentMonth, setCurrentMonth] = useState(now.getMonth());
+    const [currentYear, setCurrentYear] = useState(now.getFullYear());
 
     const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -97,6 +101,11 @@ const MovimientosView = () => {
         document.body.removeChild(link);
     };
 
+    const isCurrentMonth = currentYear === now.getFullYear() && currentMonth === now.getMonth();
+    const defaultDate = isCurrentMonth
+        ? now.toISOString().split('T')[0]
+        : `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+
     const filteredTransactions = transactions.filter(t => {
         const d = new Date(t.date + 'T00:00:00');
         const matchesMonth = d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -118,6 +127,13 @@ const MovimientosView = () => {
                         <span style={{ fontWeight: 600, minWidth: '130px', textAlign: 'center' }}>{MONTH_NAMES[currentMonth]} {currentYear}</span>
                         <button onClick={nextMonth} style={{ padding: '0.4rem', borderRadius: '4px', background: 'transparent', color: 'var(--text-main)', border: 'none', cursor: 'pointer' }}><ChevronRight size={20} /></button>
                     </div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        title="Agregar movimiento"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1rem', background: 'var(--primary)', border: 'none', borderRadius: 'var(--radius-md)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+                    >
+                        <Plus size={18} /> Nuevo
+                    </button>
                     <button
                         onClick={exportToCSV}
                         title="Exportar mes a Excel (CSV)"
@@ -156,10 +172,22 @@ const MovimientosView = () => {
                 {loading ? (
                     <div className="p-6 text-center text-muted">Cargando movimientos...</div>
                 ) : filteredTransactions.length === 0 ? (
-                    <div className="p-6 text-center" style={{ padding: '3rem' }}>
-                        <FileText size={48} style={{ color: 'var(--border)', margin: '0 auto 1rem' }} />
+                    <div className="p-6 text-center" style={{ padding: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                        <FileText size={48} style={{ color: 'var(--border)' }} />
                         <h3>No hay movimientos</h3>
-                        <p className="text-muted">No encontramos transacciones que coincidan con tu búsqueda.</p>
+                        <p className="text-muted">
+                            {searchTerm || filterType !== 'all'
+                                ? 'No encontramos transacciones que coincidan con tu búsqueda.'
+                                : `Sin movimientos en ${MONTH_NAMES[currentMonth]} ${currentYear}.`}
+                        </p>
+                        {!searchTerm && filterType === 'all' && (
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.2rem', background: 'var(--primary)', border: 'none', borderRadius: 'var(--radius-md)', color: '#fff', cursor: 'pointer', fontWeight: 600, marginTop: '0.25rem' }}
+                            >
+                                <Plus size={16} /> Agregar movimiento
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <>
@@ -244,6 +272,13 @@ const MovimientosView = () => {
                 )}
             </div>
         </div>
+
+        <TransactionModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={() => { setIsModalOpen(false); fetchData(); }}
+            defaultDate={defaultDate}
+        />
     );
 };
 

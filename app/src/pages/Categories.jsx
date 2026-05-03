@@ -1,8 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Tag, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Tag, Trash2, Edit2, X } from 'lucide-react';
 import './Categories.css';
+
+const EMOJI_OPTIONS = [
+    { label: 'Comida', emojis: ['🍔', '🍕', '🍣', '🥗', '☕', '🍷', '🥩', '🍜', '🥐', '🍱', '🍰', '🧃'] },
+    { label: 'Transporte', emojis: ['🚗', '🚌', '🚇', '🛵', '⛽', '✈️', '🚕', '🚲'] },
+    { label: 'Compras', emojis: ['🛒', '🛍️', '👗', '👟', '💄', '👜', '🧴', '👒'] },
+    { label: 'Salud', emojis: ['🏥', '💊', '🏃', '🧘', '🦷', '👓', '🩺'] },
+    { label: 'Entret.', emojis: ['🎮', '🎬', '🎵', '🎭', '🎨', '📺', '⚽', '🎲'] },
+    { label: 'Hogar', emojis: ['🏠', '💡', '🔧', '🛋️', '🧹', '💧', '🌿', '🔑'] },
+    { label: 'Tecnología', emojis: ['📱', '💻', '🖥️', '🎧', '📷', '🖨️'] },
+    { label: 'Educación', emojis: ['📚', '🎓', '🖊️', '🔬', '📐'] },
+    { label: 'Mascotas', emojis: ['🐶', '🐱', '🐠', '🐇', '🐾'] },
+    { label: 'Varios', emojis: ['💰', '💸', '🏦', '💳', '🌸', '🎁', '⭐', '🔖'] },
+];
 
 const PRESET_COLORS = [
     '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#14b8a6',
@@ -18,6 +31,18 @@ const Categories = () => {
     // States para el formulario
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formData, setFormData] = useState({ id: null, name: '', color_hex: PRESET_COLORS[0], icon: '' });
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target)) {
+                setShowEmojiPicker(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const fetchCategories = async () => {
         if (!user) return;
@@ -107,16 +132,65 @@ const Categories = () => {
                     <h3 style={{ marginBottom: '1rem' }}>{formData.id ? 'Editar Categoría' : 'Nueva Categoría'}</h3>
                     <form onSubmit={handleSubmit} className="category-form">
                         <div className="form-row" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                            <div className="form-group" style={{ width: '80px' }}>
+                            <div className="form-group" style={{ width: '80px', position: 'relative' }} ref={emojiPickerRef}>
                                 <label>Emoji</label>
-                                <input
-                                    type="text"
-                                    value={formData.icon}
-                                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                                    maxLength="2"
-                                    placeholder="🍔"
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'white', textAlign: 'center', fontSize: '1.2rem' }}
-                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEmojiPicker(v => !v)}
+                                    style={{
+                                        width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)',
+                                        background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)',
+                                        color: 'white', textAlign: 'center', fontSize: '1.4rem', cursor: 'pointer',
+                                        minHeight: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}
+                                >
+                                    {formData.icon || <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>+ emoji</span>}
+                                </button>
+
+                                {showEmojiPicker && (
+                                    <div style={{
+                                        position: 'absolute', top: 'calc(100% + 6px)', left: 0,
+                                        zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--glass-border)',
+                                        borderRadius: 'var(--radius-md)', padding: '0.75rem', width: '280px',
+                                        boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxHeight: '320px', overflowY: 'auto'
+                                    }}>
+                                        {formData.icon && (
+                                            <button
+                                                type="button"
+                                                onClick={() => { setFormData(f => ({ ...f, icon: '' })); setShowEmojiPicker(false); }}
+                                                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)', background: 'none', marginBottom: '0.5rem', cursor: 'pointer' }}
+                                            >
+                                                <X size={12} /> Quitar emoji
+                                            </button>
+                                        )}
+                                        {EMOJI_OPTIONS.map(group => (
+                                            <div key={group.label} style={{ marginBottom: '0.5rem' }}>
+                                                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                    {group.label}
+                                                </p>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
+                                                    {group.emojis.map(emoji => (
+                                                        <button
+                                                            key={emoji}
+                                                            type="button"
+                                                            onClick={() => { setFormData(f => ({ ...f, icon: emoji })); setShowEmojiPicker(false); }}
+                                                            style={{
+                                                                fontSize: '1.3rem', padding: '4px 6px', borderRadius: '6px',
+                                                                background: formData.icon === emoji ? 'rgba(255,255,255,0.15)' : 'none',
+                                                                cursor: 'pointer', border: 'none',
+                                                                transition: 'background 0.15s'
+                                                            }}
+                                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                                            onMouseLeave={e => e.currentTarget.style.background = formData.icon === emoji ? 'rgba(255,255,255,0.15)' : 'none'}
+                                                        >
+                                                            {emoji}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <div className="form-group" style={{ flex: '1', minWidth: '200px' }}>
                                 <label>Nombre de la Categoría</label>

@@ -53,7 +53,7 @@
 }
 
 .icon-btn.edit {
-    color: var(--text-muted);
+    color: var(--accent);
 }
 
 .icon-btn.edit:hover {

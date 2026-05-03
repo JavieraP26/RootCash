@@ -98,6 +98,11 @@ input, select, textarea {
   background: var(--bg-dark);
 }
 
+option {
+  background-color: #1d2419;
+  color: var(--text-main);
+}
+
 /* Utils */
 .glass-panel {
   background: var(--glass-bg);

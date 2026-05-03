@@ -115,6 +115,7 @@ const MovimientosView = () => {
     });
 
     return (
+        <>
         <div className="view-content fade-in">
             <header className="page-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
@@ -279,6 +280,7 @@ const MovimientosView = () => {
             onSuccess={() => { setIsModalOpen(false); fetchData(); }}
             defaultDate={defaultDate}
         />
+        </>
     );
 };
 
